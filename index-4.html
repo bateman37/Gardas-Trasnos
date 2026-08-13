@@ -1,0 +1,2367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a08">
+<title>Trasnos e Gardas</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="T. e Gardas">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Rubik+Mono+One&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --negro-abs: #0a0a08;
+    --negro-2: #131310;
+    --negro-3: #1a1a15;
+    --musgo-acido: #a8c23a;
+    --musgo-oscuro: #3d4a1a;
+    --musgo-tenue: #6b7d2e;
+    --sangre-viva: #d61f26;
+    --sangre-oscura: #6e0f13;
+    --sangre-tenue: #b33036;
+    --hueso: #ebe8dc;
+    --hueso-tenue: rgba(235,232,220,0.65);
+    --hueso-fina: rgba(235,232,220,0.12);
+    --oro-neutral: #d4a437;
+
+    --radio: 0px;
+    --transicion: 0.2s ease;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    background: var(--negro-abs);
+    color: var(--hueso);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  body {
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(115deg, rgba(255,255,255,0.012) 0px, transparent 2px, transparent 8px),
+      repeating-linear-gradient(25deg, rgba(255,255,255,0.008) 0px, transparent 3px, transparent 11px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: inherit;
+  }
+
+  input, select {
+    font-family: inherit;
+    background: var(--negro-2);
+    color: var(--hueso);
+    border: 1px solid var(--hueso-fina);
+    padding: 12px 14px;
+    font-size: 15px;
+    width: 100%;
+  }
+
+  input:focus, select:focus, button:focus-visible {
+    outline: 2px solid var(--musgo-acido);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--sangre-oscura);
+    color: var(--hueso);
+  }
+
+  /* ===== LAYOUT GENERAL ===== */
+
+  #app {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pantalla {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    max-width: 780px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 28px 20px 40px;
+    animation: entrada 0.35s ease;
+  }
+
+  .pantalla.activa {
+    display: flex;
+  }
+
+  @keyframes entrada {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pantalla { animation: none; }
+    * { transition: none !important; }
+  }
+
+  @media (min-width: 600px) {
+    .pantalla { padding: 44px 32px 56px; }
+  }
+
+  /* ===== BARRA SUPERIOR (contexto de partida) ===== */
+
+  .barra-superior {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--musgo-acido);
+    border-bottom: 3px solid var(--musgo-acido);
+    padding-bottom: 12px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  @media (min-width: 600px) {
+    .barra-superior { font-size: 11px; }
+  }
+
+  /* ===== TIPOGRAFÍA GENERAL ===== */
+
+  h1, h2, h3 {
+    font-family: 'Rubik Mono One', sans-serif;
+    text-transform: uppercase;
+    line-height: 0.95;
+    color: var(--hueso);
+  }
+
+  h1 { font-size: clamp(38px, 12vw, 64px); }
+  h2 { font-size: clamp(24px, 7vw, 32px); margin-bottom: 4px; }
+  h3 { font-size: 16px; }
+
+  .tachado {
+    position: relative;
+    color: var(--sangre-viva);
+    -webkit-text-stroke: 1.5px var(--negro-abs);
+    display: inline-block;
+  }
+
+  .tachado::after {
+    content: '';
+    position: absolute;
+    left: -3%;
+    right: -3%;
+    top: 46%;
+    height: 8px;
+    background: var(--sangre-viva);
+    transform: rotate(-2deg);
+    z-index: -1;
+  }
+
+  .lema {
+    font-size: 14px;
+    color: var(--musgo-acido);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin: 14px 0 24px;
+  }
+
+  p.cuerpo {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--hueso-tenue);
+    margin-bottom: 14px;
+  }
+
+  p.cuerpo strong {
+    color: var(--sangre-viva);
+    font-weight: 700;
+  }
+
+  p.cuerpo strong.destacado-musgo {
+    color: var(--musgo-acido);
+  }
+
+  .num-seccion {
+    color: var(--musgo-acido);
+  }
+
+  /* ===== BOTONES ===== */
+
+  .btn-principal {
+    display: block;
+    width: 100%;
+    background: var(--sangre-viva);
+    color: var(--negro-abs);
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 16px;
+    text-transform: uppercase;
+    padding: 20px;
+    border: none;
+    cursor: pointer;
+    clip-path: polygon(0 0, 100% 0, 98% 100%, 2% 100%);
+    transition: all var(--transicion);
+    text-align: center;
+  }
+
+  .btn-principal:hover, .btn-principal:active {
+    background: var(--musgo-acido);
+  }
+
+  .btn-principal:disabled {
+    background: var(--negro-3);
+    color: var(--hueso-tenue);
+    cursor: not-allowed;
+    clip-path: none;
+  }
+
+  .btn-secundario {
+    display: block;
+    width: 100%;
+    background: transparent;
+    color: var(--hueso);
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 14px;
+    border: 1.5px solid var(--hueso-fina);
+    cursor: pointer;
+    transition: all var(--transicion);
+    text-align: center;
+  }
+
+  .btn-secundario:hover, .btn-secundario:active {
+    border-color: var(--musgo-acido);
+    color: var(--musgo-acido);
+  }
+
+  .btn-fila {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+  }
+
+  .btn-fila > * { flex: 1; }
+
+  .grupo-botones {
+    margin-top: auto;
+    padding-top: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* ===== MODAL DE REGLAS ===== */
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,10,8,0.92);
+    z-index: 100;
+    overflow-y: auto;
+    padding: 20px;
+  }
+
+  .modal-overlay.activo {
+    display: block;
+  }
+
+  .modal-contenido {
+    max-width: 680px;
+    margin: 0 auto;
+    background: var(--negro-2);
+    border: 3px solid var(--musgo-acido);
+    padding: 28px 22px;
+    position: relative;
+  }
+
+  @media (min-width: 600px) {
+    .modal-contenido { padding: 40px 36px; }
+  }
+
+  .modal-cerrar {
+    position: absolute;
+    top: 20px;
+    right: 18px;
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+    color: var(--hueso-tenue);
+    background: var(--negro-3);
+    border: 1px solid var(--hueso-fina);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    z-index: 2;
+  }
+
+  .modal-cerrar:hover {
+    color: var(--sangre-viva);
+    border-color: var(--sangre-viva);
+  }
+
+  .modal-contenido h2 {
+    padding-right: 46px;
+  }
+
+  .modal-subtitulo {
+    margin-top: 26px;
+    margin-bottom: 10px;
+    color: var(--musgo-acido);
+  }
+
+  .modal-subtitulo .num-seccion {
+    color: var(--sangre-tenue);
+  }
+
+  .lista-reglas-roles {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .regla-rol {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--hueso-tenue);
+    padding: 10px 12px;
+    background: var(--negro-3);
+    border-left: 3px solid var(--musgo-tenue);
+  }
+
+  .regla-rol strong {
+    color: var(--hueso);
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 12px;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  /* ===== SELECTOR DE NÚMERO (jugadores) ===== */
+
+  .selector-numero {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    margin: 32px 0 16px;
+  }
+
+  .btn-num-menos, .btn-num-mas {
+    width: 52px;
+    height: 52px;
+    background: var(--negro-2);
+    border: 2px solid var(--musgo-acido);
+    color: var(--musgo-acido);
+    font-size: 26px;
+    font-family: 'Rubik Mono One', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all var(--transicion);
+  }
+
+  .btn-num-menos:hover, .btn-num-mas:hover,
+  .btn-num-menos:active, .btn-num-mas:active {
+    background: var(--musgo-acido);
+    color: var(--negro-abs);
+  }
+
+  .numero-grande {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 72px;
+    color: var(--hueso);
+    min-width: 110px;
+    text-align: center;
+    line-height: 1;
+  }
+
+  .slider-jugadores {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--hueso-fina);
+    margin-bottom: 32px;
+    cursor: pointer;
+  }
+
+  .slider-jugadores::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    background: var(--sangre-viva);
+    border: 2px solid var(--negro-abs);
+    cursor: pointer;
+  }
+
+  .slider-jugadores::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    background: var(--sangre-viva);
+    border: 2px solid var(--negro-abs);
+    cursor: pointer;
+    border-radius: 0;
+  }
+
+  /* ===== TARJETA DE REPARTO DE ROLES ===== */
+
+  .tarjeta-reparto {
+    background: var(--negro-2);
+    border: 2px solid var(--hueso-fina);
+    padding: 18px 16px;
+    margin-bottom: 16px;
+  }
+
+  .reparto-titulo {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 13px;
+    color: var(--musgo-acido);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--hueso-fina);
+    padding-bottom: 10px;
+  }
+
+  .reparto-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  @media (min-width: 480px) {
+    .reparto-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .reparto-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    background: var(--negro-3);
+    border-left: 3px solid var(--musgo-tenue);
+    font-size: 12px;
+  }
+
+  .reparto-item.trasnos { border-left-color: var(--sangre-oscura); }
+  .reparto-item.neutral { border-left-color: var(--oro-neutral); }
+
+  .reparto-item .nombre-rol {
+    color: var(--hueso-tenue);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  .reparto-item .cantidad-rol {
+    font-family: 'Rubik Mono One', sans-serif;
+    color: var(--hueso);
+    font-size: 15px;
+  }
+
+  .reparto-nota {
+    font-size: 11px;
+    color: var(--musgo-acido);
+    text-align: center;
+    margin-top: 14px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* ===== TOGGLE MODO DE REPARTO (automático / personalizado) ===== */
+
+  .toggle-modo-reparto {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .btn-modo {
+    flex: 1;
+    padding: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: var(--negro-2);
+    border: 1.5px solid var(--hueso-fina);
+    color: var(--hueso-tenue);
+    transition: all var(--transicion);
+  }
+
+  .btn-modo.activo {
+    background: var(--musgo-acido);
+    color: var(--negro-abs);
+    border-color: var(--musgo-acido);
+  }
+
+  /* ===== REPARTO EDITABLE (modo personalizado) ===== */
+
+  .reparto-item.editable {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .reparto-item.editable .fila-superior {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .controles-cantidad {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .btn-cantidad-menos, .btn-cantidad-mas {
+    width: 30px;
+    height: 30px;
+    background: var(--negro-abs);
+    border: 1px solid var(--hueso-fina);
+    color: var(--hueso);
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .btn-cantidad-menos:hover, .btn-cantidad-mas:hover {
+    border-color: var(--musgo-acido);
+    color: var(--musgo-acido);
+  }
+
+  .aviso-reparto-personalizado {
+    margin-top: 12px;
+    padding: 10px 12px;
+    font-size: 12px;
+    text-align: center;
+    border: 1px solid var(--sangre-viva);
+    background: rgba(214,31,38,0.1);
+    color: var(--sangre-tenue);
+  }
+
+  .aviso-reparto-personalizado.correcto {
+    border-color: var(--musgo-acido);
+    background: rgba(168,194,58,0.08);
+    color: var(--musgo-acido);
+  }
+
+  /* ===== CONTADOR DE CUPOS DE ROL ===== */
+
+  .contador-cupos {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  @media (min-width: 480px) {
+    .contador-cupos { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .cupo-chip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    background: var(--negro-2);
+    border: 1px solid var(--hueso-fina);
+    font-size: 11px;
+    transition: all var(--transicion);
+  }
+
+  .cupo-chip.completo {
+    border-color: var(--musgo-acido);
+    background: rgba(168,194,58,0.08);
+  }
+
+  .cupo-chip .nombre-rol {
+    color: var(--hueso-tenue);
+    text-transform: uppercase;
+  }
+
+  .cupo-chip .cuenta {
+    font-family: 'Rubik Mono One', sans-serif;
+    color: var(--hueso);
+    font-size: 13px;
+  }
+
+  .cupo-chip.completo .cuenta {
+    color: var(--musgo-acido);
+  }
+
+  /* ===== LISTA DE JUGADORES (nombre + rol) ===== */
+
+  .lista-jugadores {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .fila-jugador {
+    display: grid;
+    grid-template-columns: 28px 1fr 1fr;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .fila-jugador .num-jugador {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 12px;
+    color: var(--musgo-tenue);
+    text-align: center;
+  }
+
+  .fila-jugador input {
+    padding: 11px 10px;
+    font-size: 13px;
+  }
+
+  .fila-jugador select {
+    padding: 11px 8px;
+    font-size: 12px;
+  }
+
+  .fila-jugador select.rol-gardas { border-left: 3px solid var(--musgo-tenue); }
+  .fila-jugador select.rol-trasnos { border-left: 3px solid var(--sangre-oscura); }
+  .fila-jugador select.rol-neutral { border-left: 3px solid var(--oro-neutral); }
+  .fila-jugador select.rol-vacio { border-left: 3px solid var(--hueso-fina); }
+
+  .aviso-incompleto {
+    background: rgba(214,31,38,0.12);
+    border: 1px solid var(--sangre-viva);
+    color: var(--sangre-tenue);
+    padding: 12px 14px;
+    font-size: 12px;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  /* ===== BLOQUES DE ACCIÓN (pantalla de ronda) ===== */
+
+  .bloque-accion {
+    background: var(--negro-2);
+    border: 1px solid var(--hueso-fina);
+    padding: 16px 14px;
+    margin-bottom: 14px;
+  }
+
+  .bloque-accion-titulo {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 13px;
+    color: var(--hueso);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .marca-rol {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .marca-rol.gardas { color: var(--musgo-acido); }
+  .marca-rol.trasnos { color: var(--sangre-viva); }
+  .marca-rol.neutral { color: var(--oro-neutral); }
+
+  .nota-bloque {
+    font-size: 11px;
+    color: var(--hueso-tenue);
+    margin-bottom: 10px;
+    font-style: italic;
+  }
+
+  .select-accion {
+    width: 100%;
+    font-size: 13px;
+  }
+
+  .resultado-investigacion, .resultado-registro {
+    margin-top: 10px;
+    padding: 10px 12px;
+    font-size: 12px;
+    background: var(--negro-3);
+    border-left: 3px solid var(--oro-neutral);
+    color: var(--hueso-tenue);
+  }
+
+  .opciones-si-no {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .contador-pool-objetos {
+    font-size: 12px;
+    color: var(--musgo-acido);
+    text-align: center;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+    background: var(--negro-3);
+    border: 1px solid var(--hueso-fina);
+  }
+
+  .contador-pool-objetos.agotado {
+    color: var(--sangre-tenue);
+    border-color: var(--sangre-viva);
+  }
+
+  .trasno-opcion-fila {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .trasno-opcion-fila .nombre-trasno {
+    font-size: 13px;
+    color: var(--hueso);
+  }
+
+  .toggle-si-no {
+    display: flex;
+    gap: 4px;
+  }
+
+  .toggle-si-no button {
+    padding: 8px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: 1px solid var(--hueso-fina);
+    background: var(--negro-3);
+    color: var(--hueso-tenue);
+    transition: all var(--transicion);
+  }
+
+  .toggle-si-no button.activo-si {
+    background: var(--musgo-acido);
+    color: var(--negro-abs);
+    border-color: var(--musgo-acido);
+  }
+
+  .toggle-si-no button.activo-no {
+    background: var(--sangre-viva);
+    color: var(--negro-abs);
+    border-color: var(--sangre-viva);
+  }
+
+  .fila-voto-garda {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .fila-voto-garda .nombre-votante {
+    font-size: 12px;
+    color: var(--hueso);
+  }
+
+  .fila-voto-garda select {
+    font-size: 12px;
+    padding: 9px 8px;
+  }
+
+  .conteo-votos {
+    margin-top: 14px;
+    padding: 10px 12px;
+    background: var(--negro-3);
+    border-left: 3px solid var(--musgo-acido);
+    font-size: 12px;
+    color: var(--hueso-tenue);
+  }
+
+  .conteo-votos strong {
+    color: var(--hueso);
+  }
+
+  .fila-meiga-sospecha {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    margin-bottom: 10px;
+  }
+
+  .fila-meiga-sospecha button {
+    flex: 1;
+    padding: 9px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    border: 1px solid var(--hueso-fina);
+    background: var(--negro-3);
+    color: var(--hueso-tenue);
+    transition: all var(--transicion);
+  }
+
+  .fila-meiga-sospecha button.activo {
+    background: var(--oro-neutral);
+    color: var(--negro-abs);
+    border-color: var(--oro-neutral);
+  }
+
+  /* ===== RESULTADO DE RONDA ===== */
+
+  .lista-eventos {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .evento-item {
+    padding: 12px 14px;
+    background: var(--negro-2);
+    border-left: 3px solid var(--hueso-fina);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--hueso-tenue);
+  }
+
+  .evento-item.evento-eliminacion {
+    border-left-color: var(--sangre-viva);
+    color: var(--hueso);
+  }
+
+  .evento-item.evento-proteccion {
+    border-left-color: var(--musgo-acido);
+  }
+
+  .evento-item strong {
+    color: var(--hueso);
+  }
+
+  .marcador-puntos {
+    margin-bottom: 8px;
+  }
+
+  .marcador-titulo {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 13px;
+    color: var(--musgo-acido);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--hueso-fina);
+    padding-bottom: 8px;
+  }
+
+  .tabla-puntos {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .fila-puntos {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    background: var(--negro-2);
+    font-size: 13px;
+  }
+
+  .fila-puntos.eliminado {
+    opacity: 0.4;
+    text-decoration: line-through;
+  }
+
+  .fila-puntos .nombre-jugador-pts {
+    color: var(--hueso);
+  }
+
+  .nombre-y-rol-ronda {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .rol-jugador-pts {
+    font-size: 10px;
+    color: var(--hueso-tenue);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .fila-puntos .puntos-valor {
+    font-family: 'Rubik Mono One', sans-serif;
+    color: var(--musgo-acido);
+    font-size: 14px;
+  }
+
+  /* ===== RESUMEN FINAL ===== */
+
+  .ganador-destacado {
+    background: var(--negro-2);
+    border: 3px solid var(--musgo-acido);
+    padding: 20px 18px;
+    text-align: center;
+    margin: 20px 0;
+  }
+
+  .ganador-destacado .etiqueta-ganador {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--musgo-acido);
+    margin-bottom: 8px;
+  }
+
+  .ganador-destacado .nombre-ganador {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 28px;
+    color: var(--hueso);
+    margin-bottom: 4px;
+  }
+
+  .ganador-destacado .detalle-ganador {
+    font-size: 12px;
+    color: var(--hueso-tenue);
+  }
+
+  .bandos-resultado {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .bando-resultado-card {
+    padding: 14px 12px;
+    text-align: center;
+    border: 2px solid var(--hueso-fina);
+  }
+
+  .bando-resultado-card.bando-ganador {
+    border-color: var(--musgo-acido);
+    background: rgba(168,194,58,0.08);
+  }
+
+  .bando-resultado-card .nombre-bando {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 15px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .bando-resultado-card .estado-bando {
+    font-size: 11px;
+    color: var(--hueso-tenue);
+  }
+
+  .tabla-final {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .fila-final {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 12px;
+    background: var(--negro-2);
+    border-left: 3px solid var(--hueso-fina);
+    font-size: 12px;
+  }
+
+  .fila-final.rol-gardas { border-left-color: var(--musgo-tenue); }
+  .fila-final.rol-trasnos { border-left-color: var(--sangre-oscura); }
+  .fila-final.rol-neutral { border-left-color: var(--oro-neutral); }
+
+  .fila-final .nombre-y-rol .nombre-jug { color: var(--hueso); display: block; font-size: 13px; }
+  .fila-final .nombre-y-rol .rol-jug { color: var(--hueso-tenue); font-size: 10px; text-transform: uppercase; }
+
+  .fila-final .estado-vivo {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--musgo-acido);
+  }
+
+  .fila-final .estado-vivo.eliminado-tag {
+    color: var(--sangre-tenue);
+  }
+
+  .fila-final .puntos-finales {
+    font-family: 'Rubik Mono One', sans-serif;
+    font-size: 16px;
+    color: var(--hueso);
+  }
+
+  /* ===== CRÉDITOS ===== */
+
+  .creditos-centro {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .creditos-centro h1 {
+    margin-bottom: 4px;
+  }
+
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ PANTALLA 1: PORTADA ============ -->
+  <section class="pantalla activa" id="pantalla-portada">
+    <div class="barra-superior">
+      <span>⚔ ALDEA · NOCHE 01</span>
+      <span>Control del Máster</span>
+    </div>
+
+    <h1>Trasnos<br>e <span class="tachado">Gardas</span></h1>
+    <p class="lema">Alguien miente. Alguien sangra.</p>
+
+    <p class="cuerpo">Juego de roles ocultos para <strong class="destacado-musgo">10 a 25 jugadores</strong>. Cuatro rondas de votación, traición y un Lobishome suelto en la aldea.</p>
+    <p class="cuerpo">Nadie sabe quién es quién — ni siquiera los de su propio bando. Cada uno juega por sus propios puntos. Al final, todos los roles se desvelan juntos.</p>
+
+    <button class="btn-secundario" id="btn-ver-reglas" style="margin-top: 8px;">📜 Ver reglas completas</button>
+
+    <div class="grupo-botones">
+      <button class="btn-principal" id="btn-empezar">▸ Preparar partida</button>
+    </div>
+  </section>
+
+  <!-- ============ MODAL: REGLAS COMPLETAS ============ -->
+  <div class="modal-overlay" id="modal-reglas">
+    <div class="modal-contenido">
+      <button class="modal-cerrar" id="btn-cerrar-reglas">✕</button>
+      <h2>Reglas completas</h2>
+
+      <h3 class="modal-subtitulo"><span class="num-seccion">01</span> · Objetivo</h3>
+      <p class="cuerpo">Cada jugador recibe un rol secreto en papel. Nadie más lo conoce — ni los de su propio bando. Hay cuatro rondas. En cada ronda, los roles nocturnos actúan en secreto, y después todos los jugadores votan a quién arrestar. Al final de la ronda 4, se revelan los roles y se cuentan los puntos.</p>
+
+      <h3 class="modal-subtitulo"><span class="num-seccion">02</span> · Los bandos</h3>
+      <p class="cuerpo"><strong class="destacado-musgo">Gardas</strong> — quiere atrapar a los ocultos. <strong>Trasnos</strong> — quiere sobrevivir y cumplir sus objetivos sin ser descubierto. <strong style="color:var(--oro-neutral)">Neutrales</strong> — juegan por sus propios puntos, sin bando fijo.</p>
+
+      <h3 class="modal-subtitulo"><span class="num-seccion">03</span> · Los roles</h3>
+      <div class="lista-reglas-roles">
+        <div class="regla-rol">
+          <strong>Garda</strong> — Bando Gardas. Vota cada ronda para arrestar a alguien. Puntúa +2 si su voto ayuda a arrestar a un Trasno oculto.
+        </div>
+        <div class="regla-rol">
+          <strong>Garda Corrupto</strong> — Bando Trasnos, disfrazado de Garda. Vota igual que un Garda normal, pero intenta desviar el voto hacia un inocente. Puntúa +1 por sobrevivir la ronda, +1 extra si consigue que arresten a un inocente.
+        </div>
+        <div class="regla-rol">
+          <strong>Trasno</strong> — Bando Trasnos. Cada ronda intenta guardar un objeto en el bolsillo sin ser descubierto. Puntúa +2 por objeto conseguido. Si es arrestado, se registra su bolsillo — si llevaba objeto, se pierde en silencio (no se anuncia su rol).
+        </div>
+        <div class="regla-rol">
+          <strong>Lobishome</strong> — Bando Trasnos. Cada ronda, en secreto, elige a quién atacar. Si no es evitado por el Curandeiro/a, esa persona queda eliminada. Puntúa +1 por ataque completado.
+        </div>
+        <div class="regla-rol">
+          <strong>Curandeiro/a</strong> — Neutral. Cada ronda protege a UNA persona (nunca a sí mismo) tanto del ataque del Lobishome como del arresto de la votación. Puntúa +2 si la protección tuvo efecto real.
+        </div>
+        <div class="regla-rol">
+          <strong>Meiga</strong> — Neutral. Cada ronda investiga a una persona; el Máster le dice en secreto el bando real. Puntúa +2 por cada deducción acertada.
+        </div>
+      </div>
+
+      <h3 class="modal-subtitulo"><span class="num-seccion">04</span> · Orden de cada ronda</h3>
+      <p class="cuerpo">Todos entran a la sala en el mismo orden fijo, sin importar el rol — así nadie sospecha por el orden de entrada. El Máster resuelve todo en secreto: primero el Curandeiro/a protege, después el Lobishome ataca, después la Meiga investiga, después todos votan al arrestado, y por último el Trasno intenta su robo. Los resultados se anuncian juntos al final de la ronda.</p>
+
+      <h3 class="modal-subtitulo"><span class="num-seccion">05</span> · Silencio total</h3>
+      <p class="cuerpo">Nunca se anuncia públicamente el rol de quien es arrestado o eliminado. Simplemente sale del círculo. La incertidumbre se mantiene hasta el final de la ronda 4, donde se desvelan TODOS los roles de golpe.</p>
+
+      <h3 class="modal-subtitulo"><span class="num-seccion">06</span> · Puntos de grupo (bonus final)</h3>
+      <p class="cuerpo">Además de los puntos individuales, al final de la partida: si los Trasnos ocultos quedan en minoría, cada <strong class="destacado-musgo">Garda</strong> normal recibe +2 puntos extra. Si sobreviven 2 o más miembros del bando Trasnos, cada uno recibe +2 puntos extra. El Curandeiro/a y la Meiga no reciben este bonus — juegan solo por sus puntos individuales.</p>
+
+      <button class="btn-secundario" id="btn-cerrar-reglas-2" style="margin-top: 20px;">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- ============ PANTALLA 2: NÚMERO DE JUGADORES ============ -->
+  <section class="pantalla" id="pantalla-num-jugadores">
+    <div class="barra-superior">
+      <span>⚔ PREPARACIÓN</span>
+      <span>Paso 1 de 3</span>
+    </div>
+
+    <h2>¿Cuántos jugadores?</h2>
+    <p class="cuerpo">Entre 10 y 25. En modo automático el reparto se ajusta solo; en personalizado puedes editar cada rol para retos extremos.</p>
+
+    <div class="selector-numero">
+      <button class="btn-num-menos" id="btn-menos-jugadores" aria-label="Disminuir">−</button>
+      <div class="numero-grande" id="display-num-jugadores">14</div>
+      <button class="btn-num-mas" id="btn-mas-jugadores" aria-label="Aumentar">+</button>
+    </div>
+
+    <input type="range" min="10" max="25" value="14" id="slider-jugadores" class="slider-jugadores">
+
+    <div class="toggle-modo-reparto">
+      <button type="button" class="btn-modo activo" id="btn-modo-automatico" data-modo="automatico">Automático</button>
+      <button type="button" class="btn-modo" id="btn-modo-personalizado" data-modo="personalizado">Personalizado</button>
+    </div>
+
+    <div class="tarjeta-reparto" id="tarjeta-reparto">
+      <div class="reparto-titulo">Reparto para <span id="reparto-num">14</span> jugadores</div>
+      <div class="reparto-grid" id="reparto-grid">
+        <!-- Se rellena por JS -->
+      </div>
+      <div class="reparto-nota" id="reparto-arrestos">1 arresto por ronda · 4 rondas fijas</div>
+      <div class="aviso-reparto-personalizado" id="aviso-reparto-personalizado" style="display:none;"></div>
+    </div>
+
+    <div class="tarjeta-reparto" id="tarjeta-objetos">
+      <div class="reparto-titulo">Objetos disponibles para los Trasnos</div>
+      <div class="controles-cantidad" style="justify-content: flex-start; gap: 14px;">
+        <button type="button" class="btn-cantidad-menos" id="btn-objetos-menos">−</button>
+        <span class="numero-grande" id="display-num-objetos" style="font-size: 32px;">4</span>
+        <button type="button" class="btn-cantidad-mas" id="btn-objetos-mas">+</button>
+      </div>
+      <div class="reparto-nota">Pool compartido entre todos los Trasnos — se agota al usarse</div>
+    </div>
+
+    <div class="grupo-botones">
+      <button class="btn-principal" id="btn-continuar-jugadores">▸ Continuar</button>
+      <button class="btn-secundario" id="btn-volver-portada">← Volver</button>
+    </div>
+  </section>
+
+  <!-- ============ PANTALLA 3: NOMBRES Y ROLES ============ -->
+  <section class="pantalla" id="pantalla-nombres-roles">
+    <div class="barra-superior">
+      <span>⚔ PREPARACIÓN</span>
+      <span>Paso 2 de 3</span>
+    </div>
+
+    <h2>Jugadores y roles</h2>
+    <p class="cuerpo">Escribe el nombre de cada jugador y asígnale un rol. Los cupos se cierran automáticamente cuando se completan.</p>
+
+    <button class="btn-secundario" id="btn-asignar-azar" style="margin-bottom: 18px;">🎲 Asignar roles al azar</button>
+
+    <div class="contador-cupos" id="contador-cupos">
+      <!-- Se rellena por JS -->
+    </div>
+
+    <div class="lista-jugadores" id="lista-jugadores">
+      <!-- Se rellena por JS -->
+    </div>
+
+    <div class="aviso-incompleto" id="aviso-incompleto" style="display:none;">
+      ⚠ Faltan roles por asignar o nombres por completar
+    </div>
+
+    <div class="grupo-botones">
+      <button class="btn-principal" id="btn-continuar-roles" disabled>▸ Comenzar partida</button>
+      <button class="btn-secundario" id="btn-volver-num-jugadores">← Volver</button>
+    </div>
+  </section>
+
+  <!-- ============ PANTALLA 4: RONDA ============ -->
+  <section class="pantalla" id="pantalla-ronda">
+    <div class="barra-superior">
+      <span>⚔ RONDA <span id="ronda-actual-num">1</span> DE 4</span>
+      <span id="ronda-vivos-contador">14 vivos</span>
+    </div>
+
+    <h2>Ronda <span id="ronda-titulo-num">1</span></h2>
+    <p class="cuerpo">Todos entran a la sala en el mismo orden. Anota en secreto lo que hace cada uno. Los resultados se resuelven todos juntos al final.</p>
+
+    <div class="bloque-accion" id="bloque-curandeiro">
+      <div class="bloque-accion-titulo">
+        <span class="marca-rol neutral">○</span> Curandeiro/a — a quién protege
+      </div>
+      <select class="select-accion" id="accion-curandeiro">
+        <option value="">— No actúa / eliminado —</option>
+      </select>
+    </div>
+
+    <div class="bloque-accion" id="bloque-lobishome">
+      <div class="bloque-accion-titulo">
+        <span class="marca-rol trasnos">✕</span> Lobishome — a quién ataca
+      </div>
+      <select class="select-accion" id="accion-lobishome">
+        <option value="">— No actúa / eliminado —</option>
+      </select>
+    </div>
+
+    <div class="bloque-accion" id="bloque-meiga">
+      <div class="bloque-accion-titulo">
+        <span class="marca-rol neutral">○</span> Meiga — a quién investiga
+      </div>
+      <select class="select-accion" id="accion-meiga">
+        <option value="">— No actúa / eliminado —</option>
+      </select>
+      <div class="resultado-investigacion" id="resultado-investigacion" style="display:none;"></div>
+    </div>
+
+    <div class="bloque-accion" id="bloque-trasno">
+      <div class="bloque-accion-titulo">
+        <span class="marca-rol trasnos">✕</span> Trasno — ¿consigue el objeto sin ser visto?
+      </div>
+      <div class="contador-pool-objetos" id="contador-pool-objetos"></div>
+      <div class="opciones-si-no" id="opciones-trasno">
+        <!-- Se rellena por JS según nº de Trasnos vivos -->
+      </div>
+    </div>
+
+    <div class="bloque-accion" id="bloque-votacion">
+      <div class="bloque-accion-titulo">
+        <span class="marca-rol gardas">◆</span> Votación — cada Garda vota
+      </div>
+      <p class="nota-bloque">Votan Gardas y Gardas Corruptos (todos los que se presentan como Garda). El más votado es arrestado.</p>
+      <div id="contenedor-votos-gardas">
+        <!-- Se rellena por JS: una fila de select por cada Garda vivo -->
+      </div>
+    </div>
+
+    <div class="grupo-botones">
+      <button class="btn-principal" id="btn-resolver-ronda">▸ Resolver ronda</button>
+    </div>
+  </section>
+
+  <!-- ============ PANTALLA 4B: RESULTADO DE RONDA ============ -->
+  <section class="pantalla" id="pantalla-resultado-ronda">
+    <div class="barra-superior">
+      <span>⚔ RESULTADO · RONDA <span id="resultado-ronda-num">1</span></span>
+      <span id="resultado-vivos-contador">12 vivos</span>
+    </div>
+
+    <h2>Qué pasó</h2>
+
+    <div class="lista-eventos" id="lista-eventos">
+      <!-- Se rellena por JS -->
+    </div>
+
+    <div class="marcador-puntos">
+      <div class="marcador-titulo">Marcador acumulado</div>
+      <div class="tabla-puntos" id="tabla-puntos-ronda">
+        <!-- Se rellena por JS -->
+      </div>
+    </div>
+
+    <div class="grupo-botones">
+      <button class="btn-principal" id="btn-siguiente-ronda">▸ Siguiente ronda</button>
+    </div>
+  </section>
+
+  <!-- ============ PANTALLA 5: RESUMEN FINAL ============ -->
+  <section class="pantalla" id="pantalla-resumen-final">
+    <div class="barra-superior">
+      <span>⚔ FIN DE LA PARTIDA</span>
+      <span>Desvelo final</span>
+    </div>
+
+    <h2>Se desvela la verdad</h2>
+    <p class="cuerpo">Estos eran los roles ocultos. Este es el marcador final.</p>
+
+    <div class="ganador-destacado" id="ganador-destacado">
+      <!-- Se rellena por JS -->
+    </div>
+
+    <div class="bandos-resultado" id="bandos-resultado">
+      <!-- Se rellena por JS -->
+    </div>
+
+    <div class="marcador-titulo" style="margin-top: 28px;">Marcador completo y roles</div>
+    <div class="tabla-final" id="tabla-final">
+      <!-- Se rellena por JS -->
+    </div>
+
+    <div class="grupo-botones">
+      <button class="btn-principal" id="btn-ver-creditos">▸ Continuar</button>
+    </div>
+  </section>
+
+  <!-- ============ PANTALLA 6: CRÉDITOS ============ -->
+  <section class="pantalla" id="pantalla-creditos">
+    <div class="barra-superior">
+      <span>⚔ ALDEA · NOCHE 01</span>
+      <span>Fin</span>
+    </div>
+
+    <div class="creditos-centro">
+      <h1 style="font-size: clamp(30px, 8vw, 46px);">Trasnos<br>e <span class="tachado">Gardas</span></h1>
+      <p class="lema">La niebla se despeja hasta la próxima noche.</p>
+      <p class="cuerpo" style="margin-top: 20px;">Un juego diseñado por Dennis Bateman de Kasuals Games, con la ayuda de Claude. Roles ocultos, traición y votación — la aldea siempre guarda un secreto.</p>
+    </div>
+
+    <div class="grupo-botones">
+      <button class="btn-principal" id="btn-nueva-partida">▸ Nueva partida</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ============================================================
+     DATOS BASE — Tabla de reparto de roles por número de jugadores
+     Confirmada: 10-25 jugadores, 4 rondas fijas
+     ============================================================ */
+
+  const TABLA_ROLES = {
+    10: { gardas: 5, corruptos: 1, trasnos: 1, lobishomes: 1, curandeiros: 1, meigas: 1, arrestos: 1 },
+    11: { gardas: 5, corruptos: 1, trasnos: 2, lobishomes: 1, curandeiros: 1, meigas: 1, arrestos: 1 },
+    12: { gardas: 6, corruptos: 1, trasnos: 2, lobishomes: 1, curandeiros: 1, meigas: 1, arrestos: 1 },
+    13: { gardas: 6, corruptos: 2, trasnos: 2, lobishomes: 1, curandeiros: 1, meigas: 1, arrestos: 1 },
+    14: { gardas: 7, corruptos: 2, trasnos: 2, lobishomes: 1, curandeiros: 1, meigas: 1, arrestos: 1 },
+    15: { gardas: 7, corruptos: 2, trasnos: 3, lobishomes: 1, curandeiros: 1, meigas: 1, arrestos: 1 },
+    16: { gardas: 8, corruptos: 2, trasnos: 3, lobishomes: 1, curandeiros: 1, meigas: 1, arrestos: 1 },
+    17: { gardas: 8, corruptos: 3, trasnos: 3, lobishomes: 1, curandeiros: 1, meigas: 1, arrestos: 1 },
+    18: { gardas: 8, corruptos: 3, trasnos: 3, lobishomes: 1, curandeiros: 1, meigas: 2, arrestos: 1 },
+    19: { gardas: 8, corruptos: 3, trasnos: 3, lobishomes: 1, curandeiros: 2, meigas: 2, arrestos: 1 },
+    20: { gardas: 8, corruptos: 3, trasnos: 3, lobishomes: 2, curandeiros: 2, meigas: 2, arrestos: 2 },
+    21: { gardas: 9, corruptos: 3, trasnos: 3, lobishomes: 2, curandeiros: 2, meigas: 2, arrestos: 2 },
+    22: { gardas: 10, corruptos: 3, trasnos: 3, lobishomes: 2, curandeiros: 2, meigas: 2, arrestos: 2 },
+    23: { gardas: 10, corruptos: 3, trasnos: 4, lobishomes: 2, curandeiros: 2, meigas: 2, arrestos: 2 },
+    24: { gardas: 11, corruptos: 3, trasnos: 4, lobishomes: 2, curandeiros: 2, meigas: 2, arrestos: 2 },
+    25: { gardas: 11, corruptos: 4, trasnos: 4, lobishomes: 2, curandeiros: 2, meigas: 2, arrestos: 2 },
+  };
+
+  const NOMBRES_ROL = {
+    garda: 'Garda',
+    corrupto: 'Garda Corrupto',
+    trasno: 'Trasno',
+    lobishome: 'Lobishome',
+    curandeiro: 'Curandeiro/a',
+    meiga: 'Meiga',
+  };
+
+  const BANDO_ROL = {
+    garda: 'gardas',
+    corrupto: 'trasnos',
+    trasno: 'trasnos',
+    lobishome: 'trasnos',
+    curandeiro: 'neutral',
+    meiga: 'neutral',
+  };
+
+  const RONDAS_TOTALES = 4;
+
+  /* ============================================================
+     ESTADO DE LA PARTIDA
+     ============================================================ */
+
+  let estado = {
+    numJugadores: 14,
+    jugadores: [],       // {id, nombre, rol, vivo, puntos, objetosConseguidos}
+    rondaActual: 1,
+    accionesRonda: {},   // acciones registradas de la ronda en curso, antes de resolver
+    modoReparto: 'automatico', // 'automatico' | 'personalizado'
+    repartoPersonalizado: null, // objeto con las mismas claves que TABLA_ROLES cuando el máster edita manualmente
+    objetosTotales: 4,   // pool compartido de objetos disponibles para los Trasnos en toda la partida
+    objetosUsados: 0,    // cuántos objetos del pool ya se han conseguido
+  };
+
+  /* ============================================================
+     NAVEGACIÓN ENTRE PANTALLAS
+     ============================================================ */
+
+  function mostrarPantalla(id) {
+    document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
+    document.getElementById(id).classList.add('activa');
+    window.scrollTo(0, 0);
+  }
+
+  function abrirModal(id) {
+    document.getElementById(id).classList.add('activo');
+  }
+
+  function cerrarModal(id) {
+    document.getElementById(id).classList.remove('activo');
+  }
+
+  /* ============================================================
+     PANTALLA 1: PORTADA
+     ============================================================ */
+
+  document.getElementById('btn-ver-reglas').addEventListener('click', () => abrirModal('modal-reglas'));
+  document.getElementById('btn-cerrar-reglas').addEventListener('click', () => cerrarModal('modal-reglas'));
+  document.getElementById('btn-cerrar-reglas-2').addEventListener('click', () => cerrarModal('modal-reglas'));
+
+  document.getElementById('btn-empezar').addEventListener('click', () => {
+    mostrarPantalla('pantalla-num-jugadores');
+    actualizarPantallaNumJugadores();
+  });
+
+  /* ============================================================
+     PANTALLA 2: NÚMERO DE JUGADORES
+     ============================================================ */
+
+  const ORDEN_ROLES = ['gardas', 'corruptos', 'trasnos', 'lobishomes', 'curandeiros', 'meigas'];
+  const CONFIG_ROLES = [
+    { clave: 'gardas', nombre: 'Garda', tipo: 'gardas' },
+    { clave: 'corruptos', nombre: 'Garda Corrupto', tipo: 'trasnos' },
+    { clave: 'trasnos', nombre: 'Trasno', tipo: 'trasnos' },
+    { clave: 'lobishomes', nombre: 'Lobishome', tipo: 'trasnos' },
+    { clave: 'curandeiros', nombre: 'Curandeiro/a', tipo: 'neutral' },
+    { clave: 'meigas', nombre: 'Meiga', tipo: 'neutral' },
+  ];
+
+  function repartoActivo() {
+    if (estado.modoReparto === 'personalizado' && estado.repartoPersonalizado) {
+      return estado.repartoPersonalizado;
+    }
+    return TABLA_ROLES[estado.numJugadores];
+  }
+
+  function actualizarPantallaNumJugadores() {
+    document.getElementById('display-num-jugadores').textContent = estado.numJugadores;
+    document.getElementById('slider-jugadores').value = estado.numJugadores;
+    document.getElementById('reparto-num').textContent = estado.numJugadores;
+
+    if (estado.modoReparto === 'automatico') {
+      renderizarRepartoAutomatico();
+    } else {
+      renderizarRepartoPersonalizado();
+    }
+  }
+
+  function renderizarRepartoAutomatico() {
+    const reparto = TABLA_ROLES[estado.numJugadores];
+    const grid = document.getElementById('reparto-grid');
+    grid.innerHTML = '';
+
+    CONFIG_ROLES.forEach(cfg => {
+      const div = document.createElement('div');
+      div.className = `reparto-item ${cfg.tipo}`;
+      div.innerHTML = `<span class="nombre-rol">${cfg.nombre}</span><span class="cantidad-rol">${reparto[cfg.clave]}</span>`;
+      grid.appendChild(div);
+    });
+
+    document.getElementById('reparto-arrestos').textContent =
+      `${reparto.arrestos} arresto${reparto.arrestos > 1 ? 's' : ''} por ronda · 4 rondas fijas`;
+    document.getElementById('aviso-reparto-personalizado').style.display = 'none';
+    validarBotonContinuarJugadores();
+  }
+
+  function renderizarRepartoPersonalizado() {
+    // Si es la primera vez que se entra en modo personalizado, o cambió el nº de jugadores,
+    // se parte del reparto automático como punto de partida editable
+    if (!estado.repartoPersonalizado) {
+      estado.repartoPersonalizado = { ...TABLA_ROLES[estado.numJugadores] };
+    }
+    const reparto = estado.repartoPersonalizado;
+    const grid = document.getElementById('reparto-grid');
+    grid.innerHTML = '';
+
+    CONFIG_ROLES.forEach(cfg => {
+      const div = document.createElement('div');
+      div.className = `reparto-item editable ${cfg.tipo}`;
+      div.innerHTML = `
+        <div class="fila-superior">
+          <span class="nombre-rol">${cfg.nombre}</span>
+        </div>
+        <div class="controles-cantidad">
+          <button type="button" class="btn-cantidad-menos" data-rol="${cfg.clave}">−</button>
+          <span class="cantidad-rol" id="cantidad-${cfg.clave}">${reparto[cfg.clave]}</span>
+          <button type="button" class="btn-cantidad-mas" data-rol="${cfg.clave}">+</button>
+        </div>
+      `;
+      grid.appendChild(div);
+    });
+
+    grid.querySelectorAll('.btn-cantidad-menos').forEach(btn => {
+      btn.addEventListener('click', () => cambiarCantidadRol(btn.dataset.rol, -1));
+    });
+    grid.querySelectorAll('.btn-cantidad-mas').forEach(btn => {
+      btn.addEventListener('click', () => cambiarCantidadRol(btn.dataset.rol, 1));
+    });
+
+    // Arrestos por ronda también editable en modo personalizado (1 o 2)
+    document.getElementById('reparto-arrestos').innerHTML = `
+      <div class="controles-cantidad" style="margin-top:4px;">
+        <span>Arrestos por ronda:</span>
+        <button type="button" class="btn-cantidad-menos" id="btn-arrestos-menos">−</button>
+        <span id="cantidad-arrestos">${reparto.arrestos}</span>
+        <button type="button" class="btn-cantidad-mas" id="btn-arrestos-mas">+</button>
+      </div>
+      <div style="margin-top:6px;">4 rondas fijas</div>
+    `;
+    document.getElementById('btn-arrestos-menos').addEventListener('click', () => cambiarArrestos(-1));
+    document.getElementById('btn-arrestos-mas').addEventListener('click', () => cambiarArrestos(1));
+
+    validarRepartoPersonalizado();
+  }
+
+  function cambiarCantidadRol(rol, delta) {
+    const nuevo = estado.repartoPersonalizado[rol] + delta;
+    if (nuevo >= 0) {
+      estado.repartoPersonalizado[rol] = nuevo;
+      document.getElementById(`cantidad-${rol}`).textContent = nuevo;
+      validarRepartoPersonalizado();
+    }
+  }
+
+  function cambiarArrestos(delta) {
+    const nuevo = estado.repartoPersonalizado.arrestos + delta;
+    if (nuevo >= 1 && nuevo <= 2) {
+      estado.repartoPersonalizado.arrestos = nuevo;
+      document.getElementById('cantidad-arrestos').textContent = nuevo;
+    }
+  }
+
+  function validarRepartoPersonalizado() {
+    const reparto = estado.repartoPersonalizado;
+    const suma = ORDEN_ROLES.reduce((acc, clave) => acc + reparto[clave], 0);
+    const aviso = document.getElementById('aviso-reparto-personalizado');
+    aviso.style.display = 'block';
+
+    if (suma === estado.numJugadores) {
+      aviso.className = 'aviso-reparto-personalizado correcto';
+      aviso.textContent = `✓ Suma correcta: ${suma} de ${estado.numJugadores} jugadores.`;
+    } else if (suma < estado.numJugadores) {
+      aviso.className = 'aviso-reparto-personalizado';
+      aviso.textContent = `⚠ Faltan ${estado.numJugadores - suma} jugador${estado.numJugadores - suma !== 1 ? 'es' : ''} por asignar.`;
+    } else {
+      aviso.className = 'aviso-reparto-personalizado';
+      aviso.textContent = `⚠ Sobran ${suma - estado.numJugadores} jugador${suma - estado.numJugadores !== 1 ? 'es' : ''} — quita alguno.`;
+    }
+    validarBotonContinuarJugadores();
+  }
+
+  function validarBotonContinuarJugadores() {
+    const btn = document.getElementById('btn-continuar-jugadores');
+    if (estado.modoReparto === 'automatico') {
+      btn.disabled = false;
+      return;
+    }
+    const reparto = estado.repartoPersonalizado;
+    const suma = ORDEN_ROLES.reduce((acc, clave) => acc + reparto[clave], 0);
+    btn.disabled = suma !== estado.numJugadores;
+  }
+
+  function cambiarNumJugadores(delta) {
+    const nuevo = estado.numJugadores + delta;
+    if (nuevo >= 10 && nuevo <= 25) {
+      estado.numJugadores = nuevo;
+      estado.repartoPersonalizado = null; // se recalcula desde la nueva base automática
+      actualizarPantallaNumJugadores();
+    }
+  }
+
+  document.getElementById('btn-menos-jugadores').addEventListener('click', () => cambiarNumJugadores(-1));
+  document.getElementById('btn-mas-jugadores').addEventListener('click', () => cambiarNumJugadores(1));
+
+  document.getElementById('btn-modo-automatico').addEventListener('click', () => {
+    estado.modoReparto = 'automatico';
+    document.getElementById('btn-modo-automatico').classList.add('activo');
+    document.getElementById('btn-modo-personalizado').classList.remove('activo');
+    actualizarPantallaNumJugadores();
+  });
+
+  document.getElementById('btn-modo-personalizado').addEventListener('click', () => {
+    estado.modoReparto = 'personalizado';
+    document.getElementById('btn-modo-personalizado').classList.add('activo');
+    document.getElementById('btn-modo-automatico').classList.remove('activo');
+    actualizarPantallaNumJugadores();
+  });
+
+  document.getElementById('slider-jugadores').addEventListener('input', (e) => {
+    estado.numJugadores = parseInt(e.target.value);
+    estado.repartoPersonalizado = null; // se recalcula desde la nueva base automática
+    actualizarPantallaNumJugadores();
+  });
+
+  document.getElementById('btn-objetos-menos').addEventListener('click', () => {
+    if (estado.objetosTotales > 0) {
+      estado.objetosTotales--;
+      document.getElementById('display-num-objetos').textContent = estado.objetosTotales;
+    }
+  });
+
+  document.getElementById('btn-objetos-mas').addEventListener('click', () => {
+    estado.objetosTotales++;
+    document.getElementById('display-num-objetos').textContent = estado.objetosTotales;
+  });
+
+  document.getElementById('btn-volver-portada').addEventListener('click', () => mostrarPantalla('pantalla-portada'));
+
+  document.getElementById('btn-continuar-jugadores').addEventListener('click', () => {
+    inicializarJugadores();
+    mostrarPantalla('pantalla-nombres-roles');
+  });
+
+  /* ============================================================
+     PANTALLA 3: NOMBRES Y ROLES
+     ============================================================ */
+
+  function inicializarJugadores() {
+    estado.jugadores = [];
+    for (let i = 0; i < estado.numJugadores; i++) {
+      estado.jugadores.push({
+        id: i,
+        nombre: '',
+        rol: '',
+        vivo: true,
+        puntos: 0,
+        objetosConseguidos: 0,
+      });
+    }
+    renderizarListaJugadores();
+  }
+
+  function obtenerCuposDisponibles() {
+    const reparto = repartoActivo();
+    const cupos = {
+      garda: reparto.gardas,
+      corrupto: reparto.corruptos,
+      trasno: reparto.trasnos,
+      lobishome: reparto.lobishomes,
+      curandeiro: reparto.curandeiros,
+      meiga: reparto.meigas,
+    };
+    return cupos;
+  }
+
+  function contarRolesAsignados() {
+    const conteo = { garda: 0, corrupto: 0, trasno: 0, lobishome: 0, curandeiro: 0, meiga: 0 };
+    estado.jugadores.forEach(j => {
+      if (j.rol) conteo[j.rol]++;
+    });
+    return conteo;
+  }
+
+  function renderizarContadorCupos() {
+    const cupos = obtenerCuposDisponibles();
+    const asignados = contarRolesAsignados();
+    const contenedor = document.getElementById('contador-cupos');
+    contenedor.innerHTML = '';
+
+    Object.keys(cupos).forEach(rol => {
+      const div = document.createElement('div');
+      const completo = asignados[rol] >= cupos[rol];
+      div.className = `cupo-chip ${completo ? 'completo' : ''}`;
+      div.innerHTML = `<span class="nombre-rol">${NOMBRES_ROL[rol]}</span><span class="cuenta">${asignados[rol]}/${cupos[rol]}</span>`;
+      contenedor.appendChild(div);
+    });
+  }
+
+  function renderizarListaJugadores() {
+    const lista = document.getElementById('lista-jugadores');
+    lista.innerHTML = '';
+
+    estado.jugadores.forEach((jugador, idx) => {
+      const fila = document.createElement('div');
+      fila.className = 'fila-jugador';
+
+      const inputNombre = document.createElement('input');
+      inputNombre.type = 'text';
+      inputNombre.placeholder = `Nombre jugador ${idx + 1}`;
+      inputNombre.value = jugador.nombre;
+      inputNombre.addEventListener('input', (e) => {
+        estado.jugadores[idx].nombre = e.target.value;
+        validarFormularioRoles();
+      });
+
+      const selectRol = document.createElement('select');
+      selectRol.className = 'rol-vacio';
+      selectRol.id = `select-rol-${idx}`;
+      actualizarOpcionesSelect(selectRol, idx);
+
+      selectRol.addEventListener('change', (e) => {
+        estado.jugadores[idx].rol = e.target.value;
+        actualizarClaseSelect(selectRol, e.target.value);
+        renderizarContadorCupos();
+        actualizarTodosLosSelects();
+        validarFormularioRoles();
+      });
+
+      fila.innerHTML = `<span class="num-jugador">${idx + 1}</span>`;
+      fila.appendChild(inputNombre);
+      fila.appendChild(selectRol);
+      lista.appendChild(fila);
+    });
+
+    renderizarContadorCupos();
+    validarFormularioRoles();
+  }
+
+  function actualizarClaseSelect(select, rol) {
+    select.classList.remove('rol-gardas', 'rol-trasnos', 'rol-neutral', 'rol-vacio');
+    if (!rol) { select.classList.add('rol-vacio'); return; }
+    select.classList.add(`rol-${BANDO_ROL[rol]}`);
+  }
+
+  function actualizarOpcionesSelect(select, idxActual) {
+    const cupos = obtenerCuposDisponibles();
+    const asignados = contarRolesAsignados();
+    const rolActualDeEsteJugador = estado.jugadores[idxActual].rol;
+
+    select.innerHTML = '<option value="">— Sin rol —</option>';
+
+    Object.keys(cupos).forEach(rol => {
+      const esRolPropio = rol === rolActualDeEsteJugador;
+      const disponible = asignados[rol] < cupos[rol] || esRolPropio;
+      const option = document.createElement('option');
+      option.value = rol;
+
+      let etiqueta;
+      if (esRolPropio) {
+        etiqueta = `${NOMBRES_ROL[rol]} (asignado a este)`;
+      } else if (disponible) {
+        const restantes = cupos[rol] - asignados[rol];
+        etiqueta = `${NOMBRES_ROL[rol]} (${restantes} libre${restantes !== 1 ? 's' : ''})`;
+      } else {
+        etiqueta = `${NOMBRES_ROL[rol]} — cubierto`;
+      }
+
+      option.textContent = etiqueta;
+      option.disabled = !disponible;
+      if (esRolPropio) option.selected = true;
+      select.appendChild(option);
+    });
+  }
+
+  function actualizarTodosLosSelects() {
+    estado.jugadores.forEach((jugador, idx) => {
+      const select = document.getElementById(`select-rol-${idx}`);
+      if (select) {
+        const valorActual = select.value;
+        actualizarOpcionesSelect(select, idx);
+        select.value = valorActual;
+      }
+    });
+  }
+
+  function validarFormularioRoles() {
+    const todosConNombre = estado.jugadores.every(j => j.nombre.trim() !== '');
+    const todosConRol = estado.jugadores.every(j => j.rol !== '');
+    const btn = document.getElementById('btn-continuar-roles');
+    const aviso = document.getElementById('aviso-incompleto');
+
+    if (todosConNombre && todosConRol) {
+      btn.disabled = false;
+      aviso.style.display = 'none';
+    } else {
+      btn.disabled = true;
+      aviso.style.display = 'block';
+    }
+  }
+
+  document.getElementById('btn-asignar-azar').addEventListener('click', () => {
+    const cupos = obtenerCuposDisponibles();
+    let bolsaRoles = [];
+    Object.keys(cupos).forEach(rol => {
+      for (let i = 0; i < cupos[rol]; i++) bolsaRoles.push(rol);
+    });
+    if (bolsaRoles.length !== estado.jugadores.length) {
+      alert(`El reparto suma ${bolsaRoles.length} roles pero hay ${estado.jugadores.length} jugadores. Ajusta el reparto personalizado en el paso anterior antes de asignar al azar.`);
+      return;
+    }
+    // Mezclar aleatoriamente (Fisher-Yates)
+    for (let i = bolsaRoles.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [bolsaRoles[i], bolsaRoles[j]] = [bolsaRoles[j], bolsaRoles[i]];
+    }
+    estado.jugadores.forEach((jugador, idx) => {
+      jugador.rol = bolsaRoles[idx];
+    });
+    renderizarListaJugadores();
+    estado.jugadores.forEach((jugador, idx) => {
+      const select = document.getElementById(`select-rol-${idx}`);
+      select.value = jugador.rol;
+      actualizarClaseSelect(select, jugador.rol);
+    });
+  });
+
+  document.getElementById('btn-volver-num-jugadores').addEventListener('click', () => mostrarPantalla('pantalla-num-jugadores'));
+
+  document.getElementById('btn-continuar-roles').addEventListener('click', () => {
+    estado.rondaActual = 1;
+    prepararPantallaRonda();
+    mostrarPantalla('pantalla-ronda');
+  });
+
+  /* ============================================================
+     PANTALLA 4: RONDA — preparación de selects y lógica
+     ============================================================ */
+
+  function jugadoresVivos() {
+    return estado.jugadores.filter(j => j.vivo);
+  }
+
+  function jugadoresVivosPorRol(rol) {
+    return jugadoresVivos().filter(j => j.rol === rol);
+  }
+
+  function llenarSelectConVivos(select, excluirId) {
+    select.innerHTML = '<option value="">— No actúa / eliminado —</option>';
+    jugadoresVivos().forEach(j => {
+      if (j.id === excluirId) return; // el curandeiro no puede elegirse a sí mismo
+      const option = document.createElement('option');
+      option.value = j.id;
+      option.textContent = j.nombre;
+      select.appendChild(option);
+    });
+  }
+
+  function actualizarContadorPoolObjetos() {
+    const restantes = estado.objetosTotales - estado.objetosUsados;
+    const div = document.getElementById('contador-pool-objetos');
+    if (!div) return;
+    div.textContent = `Objetos restantes: ${restantes} de ${estado.objetosTotales}`;
+    div.className = restantes <= 0 ? 'contador-pool-objetos agotado' : 'contador-pool-objetos';
+  }
+
+  function prepararPantallaRonda() {
+    document.getElementById('ronda-actual-num').textContent = estado.rondaActual;
+    document.getElementById('ronda-titulo-num').textContent = estado.rondaActual;
+    document.getElementById('ronda-vivos-contador').textContent = `${jugadoresVivos().length} vivos`;
+
+    estado.accionesRonda = {};
+
+    // Curandeiro/a — puede haber 1 o 2, mostramos un select por cada curandeiro vivo
+    const curandeiros = jugadoresVivosPorRol('curandeiro');
+    const bloqueCurandeiro = document.getElementById('bloque-curandeiro');
+    if (curandeiros.length === 0) {
+      bloqueCurandeiro.style.display = 'none';
+    } else {
+      bloqueCurandeiro.style.display = 'block';
+      let html = `<div class="bloque-accion-titulo"><span class="marca-rol neutral">○</span> Curandeiro/a — a quién protege</div>`;
+      curandeiros.forEach((c) => {
+        html += `<div class="nota-bloque"><strong>${c.nombre}</strong> (Curandeiro/a) protege a:</div>`;
+        html += `<select class="select-accion" id="accion-curandeiro-${c.id}" style="margin-bottom:10px;"></select>`;
+      });
+      bloqueCurandeiro.innerHTML = html;
+      curandeiros.forEach(c => {
+        const sel = document.getElementById(`accion-curandeiro-${c.id}`);
+        llenarSelectConVivos(sel, c.id);
+      });
+    }
+
+    // Lobishome — puede haber 1 o 2
+    const lobishomes = jugadoresVivosPorRol('lobishome');
+    const bloqueLobishome = document.getElementById('bloque-lobishome');
+    if (lobishomes.length === 0) {
+      bloqueLobishome.style.display = 'none';
+    } else {
+      bloqueLobishome.style.display = 'block';
+      let html = `<div class="bloque-accion-titulo"><span class="marca-rol trasnos">✕</span> Lobishome — a quién ataca</div>`;
+      lobishomes.forEach((l, idx) => {
+        html += `<div class="nota-bloque"><strong>${l.nombre}</strong> (Lobishome) ataca a:</div>`;
+        html += `<select class="select-accion" id="accion-lobishome-${l.id}" style="margin-bottom:10px;"></select>`;
+      });
+      bloqueLobishome.innerHTML = html;
+      lobishomes.forEach(l => {
+        const sel = document.getElementById(`accion-lobishome-${l.id}`);
+        llenarSelectConVivos(sel, l.id);
+      });
+    }
+
+    // Meiga — puede haber 1 o 2
+    const meigas = jugadoresVivosPorRol('meiga');
+    const bloqueMeiga = document.getElementById('bloque-meiga');
+    if (meigas.length === 0) {
+      bloqueMeiga.style.display = 'none';
+    } else {
+      bloqueMeiga.style.display = 'block';
+      let html = `<div class="bloque-accion-titulo"><span class="marca-rol neutral">○</span> Meiga — a quién investiga y su sospecha</div>`;
+      meigas.forEach((m) => {
+        html += `<div class="nota-bloque"><strong>${m.nombre}</strong> (Meiga) investiga a:</div>`;
+        html += `<select class="select-accion" id="accion-meiga-${m.id}" style="margin-bottom:8px;"></select>
+                  <div class="nota-bloque">¿Cuál es su sospecha antes de revelar?</div>
+                  <div class="fila-meiga-sospecha" data-meiga-id="${m.id}">
+                    <button type="button" data-valor="gardas">Gardas</button>
+                    <button type="button" data-valor="trasnos">Trasnos</button>
+                    <button type="button" data-valor="neutral">Neutral</button>
+                  </div>`;
+      });
+      bloqueMeiga.innerHTML = html;
+      meigas.forEach(m => {
+        const sel = document.getElementById(`accion-meiga-${m.id}`);
+        llenarSelectConVivos(sel, m.id);
+      });
+      bloqueMeiga.querySelectorAll('.fila-meiga-sospecha').forEach(fila => {
+        const meigaId = fila.dataset.meigaId;
+        fila.querySelectorAll('button').forEach(btn => {
+          btn.addEventListener('click', () => {
+            fila.querySelectorAll('button').forEach(b => b.classList.remove('activo'));
+            btn.classList.add('activo');
+            estado.accionesRonda[`sospecha-meiga-${meigaId}`] = btn.dataset.valor;
+          });
+        });
+      });
+    }
+
+    // Trasno — sí/no consigue objeto, uno por cada trasno vivo
+    const trasnos = jugadoresVivosPorRol('trasno');
+    const bloqueTrasno = document.getElementById('bloque-trasno');
+    const contenedorTrasno = document.getElementById('opciones-trasno');
+    if (trasnos.length === 0) {
+      bloqueTrasno.style.display = 'none';
+    } else {
+      bloqueTrasno.style.display = 'block';
+      actualizarContadorPoolObjetos();
+      contenedorTrasno.innerHTML = '';
+      const poolAgotado = estado.objetosUsados >= estado.objetosTotales;
+      trasnos.forEach(t => {
+        const fila = document.createElement('div');
+        fila.className = 'trasno-opcion-fila';
+        fila.innerHTML = `
+          <span class="nombre-trasno"><strong>${t.nombre}</strong> (Trasno)</span>
+          <div class="toggle-si-no" data-trasno-id="${t.id}">
+            <button type="button" data-valor="si" ${poolAgotado ? 'disabled' : ''}>Consiguió</button>
+            <button type="button" data-valor="no">Descubierto</button>
+          </div>
+        `;
+        contenedorTrasno.appendChild(fila);
+      });
+      contenedorTrasno.querySelectorAll('.toggle-si-no').forEach(toggle => {
+        const trasnoId = toggle.dataset.trasnoId;
+        toggle.querySelectorAll('button').forEach(btn => {
+          btn.addEventListener('click', () => {
+            toggle.querySelectorAll('button').forEach(b => {
+              b.classList.remove('activo-si', 'activo-no');
+            });
+            btn.classList.add(btn.dataset.valor === 'si' ? 'activo-si' : 'activo-no');
+            estado.accionesRonda[`trasno-${trasnoId}`] = btn.dataset.valor;
+          });
+        });
+      });
+    }
+
+    // Votación — cada Garda (normal + corrupto) vota a alguien
+    const arrestosEstaRonda = repartoActivo().arrestos;
+    const votantesVivos = [...jugadoresVivosPorRol('garda'), ...jugadoresVivosPorRol('corrupto')];
+    const contenedorVotos = document.getElementById('contenedor-votos-gardas');
+    contenedorVotos.innerHTML = '';
+
+    votantesVivos.forEach(votante => {
+      const fila = document.createElement('div');
+      fila.className = 'fila-voto-garda';
+      const select = document.createElement('select');
+      select.id = `voto-garda-${votante.id}`;
+      select.innerHTML = '<option value="">— No vota —</option>';
+      jugadoresVivos().forEach(j => {
+        if (j.id === votante.id) return; // no puede votarse a sí mismo
+        const option = document.createElement('option');
+        option.value = j.id;
+        option.textContent = j.nombre;
+        select.appendChild(option);
+      });
+      const etiquetaRol = votante.rol === 'corrupto' ? 'Garda Corrupto' : 'Garda';
+      fila.innerHTML = `<span class="nombre-votante"><strong>${votante.nombre}</strong> (${etiquetaRol}) vota a:</span>`;
+      fila.appendChild(select);
+      contenedorVotos.appendChild(fila);
+
+      select.addEventListener('change', actualizarConteoVotos);
+    });
+
+    const divConteo = document.createElement('div');
+    divConteo.className = 'conteo-votos';
+    divConteo.id = 'conteo-votos-display';
+    divConteo.textContent = arrestosEstaRonda > 1
+      ? `Se registran los votos para determinar los ${arrestosEstaRonda} más votados.`
+      : 'Se registran los votos para determinar el más votado.';
+    contenedorVotos.appendChild(divConteo);
+  }
+
+  function actualizarConteoVotos() {
+    const votantesVivos = [...jugadoresVivosPorRol('garda'), ...jugadoresVivosPorRol('corrupto')];
+    const conteo = {};
+    votantesVivos.forEach(votante => {
+      const select = document.getElementById(`voto-garda-${votante.id}`);
+      if (select && select.value !== '') {
+        const votadoId = select.value;
+        conteo[votadoId] = (conteo[votadoId] || 0) + 1;
+      }
+    });
+
+    const ordenados = Object.entries(conteo).sort((a, b) => b[1] - a[1]);
+    const arrestosEstaRonda = repartoActivo().arrestos;
+    const divConteo = document.getElementById('conteo-votos-display');
+    if (!divConteo) return;
+
+    if (ordenados.length === 0) {
+      divConteo.textContent = 'Todavía sin votos registrados.';
+      return;
+    }
+
+    const topN = ordenados.slice(0, arrestosEstaRonda);
+    const texto = topN.map(([id, votos]) => {
+      const j = jugadorPorId(parseInt(id));
+      return `<strong>${j.nombre}</strong> (${votos} votos)`;
+    }).join(', ');
+
+    divConteo.innerHTML = `Más votado${arrestosEstaRonda > 1 ? 's' : ''} ahora mismo: ${texto}`;
+  }
+
+
+  /* ============================================================
+     RESOLUCIÓN DE RONDA — el corazón de la lógica del juego
+     ============================================================ */
+
+  function obtenerIdSeleccionado(selectId) {
+    const el = document.getElementById(selectId);
+    if (!el || el.value === '') return null;
+    return parseInt(el.value);
+  }
+
+  function jugadorPorId(id) {
+    return estado.jugadores.find(j => j.id === id);
+  }
+
+  document.getElementById('btn-resolver-ronda').addEventListener('click', resolverRonda);
+
+  function resolverRonda() {
+    const eventos = [];
+    const proteccionesActivas = new Set(); // ids de jugadores protegidos esta ronda
+
+    // Capturamos los Trasnos vivos AL INICIO de la ronda, antes de cualquier eliminación,
+    // para que su intento de objeto se muestre siempre aunque acaben arrestados esta misma ronda
+    const trasnosAlInicioDeRonda = jugadoresVivosPorRol('trasno');
+
+    // 1. CURANDEIRO/A actúa primero — recoger protecciones
+    const curandeiros = jugadoresVivosPorRol('curandeiro');
+    curandeiros.forEach(c => {
+      const protegidoId = obtenerIdSeleccionado(`accion-curandeiro-${c.id}`);
+      if (protegidoId !== null) {
+        proteccionesActivas.add(protegidoId);
+        estado.accionesRonda[`proteccion-${c.id}`] = protegidoId;
+      }
+    });
+
+    // 2. LOBISHOME ataca — se resuelve si hay protección
+    const lobishomes = jugadoresVivosPorRol('lobishome');
+    const eliminadosPorAtaque = [];
+    const objetivosYaAtacados = new Set(); // evita puntuar doble si 2 lobishomes coinciden en el mismo objetivo
+    lobishomes.forEach(l => {
+      const objetivoId = obtenerIdSeleccionado(`accion-lobishome-${l.id}`);
+      if (objetivoId !== null) {
+        const objetivo = jugadorPorId(objetivoId);
+        if (objetivosYaAtacados.has(objetivoId)) {
+          // Otro Lobishome ya atacó a esta misma persona esta ronda: no se procesa ni puntúa dos veces
+          return;
+        }
+        objetivosYaAtacados.add(objetivoId);
+        if (proteccionesActivas.has(objetivoId)) {
+          eventos.push({ tipo: 'proteccion', texto: `El Curandeiro/a protegió a <strong>${objetivo.nombre}</strong> del ataque del Lobishome.` });
+          // el curandeiro que protegió a esta persona puntúa +2 por protección con efecto real
+          curandeiros.forEach(c => {
+            if (estado.accionesRonda[`proteccion-${c.id}`] === objetivoId) {
+              c.puntos += 2;
+            }
+          });
+        } else {
+          objetivo.vivo = false;
+          eliminadosPorAtaque.push(objetivo);
+          l.puntos += 1;
+          eventos.push({ tipo: 'eliminacion', texto: `<strong>${objetivo.nombre}</strong> fue atacado por el Lobishome y quedó eliminado.` });
+        }
+      }
+    });
+
+    // 3. MEIGA investiga — compara la sospecha registrada ANTES de revelar con el bando real
+    const meigas = jugadoresVivosPorRol('meiga');
+    let resultadosInvestigacion = [];
+    meigas.forEach(m => {
+      const investigadoId = obtenerIdSeleccionado(`accion-meiga-${m.id}`);
+      const sospecha = estado.accionesRonda[`sospecha-meiga-${m.id}`];
+      if (investigadoId !== null && sospecha) {
+        const investigado = jugadorPorId(investigadoId);
+        const bandoReal = BANDO_ROL[investigado.rol];
+        const acierto = sospecha === bandoReal;
+        if (acierto) m.puntos += 2;
+        resultadosInvestigacion.push({
+          meiga: m.nombre,
+          investigado: investigado.nombre,
+          bandoReal: bandoReal,
+          sospecha: sospecha,
+          acierto: acierto,
+        });
+      }
+    });
+
+    // 4. VOTACIÓN — cada Garda/Corrupto votó a alguien; se calcula quién resulta arrestado
+    const arrestosEstaRonda = repartoActivo().arrestos;
+    const votantesVivos = [...jugadoresVivosPorRol('garda'), ...jugadoresVivosPorRol('corrupto')];
+    const votosRegistrados = {}; // votanteId -> votadoId
+    const conteoVotosFinal = {};
+
+    votantesVivos.forEach(votante => {
+      const votadoId = obtenerIdSeleccionado(`voto-garda-${votante.id}`);
+      if (votadoId !== null) {
+        votosRegistrados[votante.id] = votadoId;
+        conteoVotosFinal[votadoId] = (conteoVotosFinal[votadoId] || 0) + 1;
+      }
+    });
+
+    const rankingVotos = Object.entries(conteoVotosFinal).sort((a, b) => b[1] - a[1]);
+    const arrestadosIds = rankingVotos.slice(0, arrestosEstaRonda).map(([id]) => parseInt(id));
+
+    arrestadosIds.forEach(arrestadoId => {
+      const arrestado = jugadorPorId(arrestadoId);
+      if (!arrestado) return;
+      if (!arrestado.vivo) {
+        // Ya fue eliminado por el Lobishome esta misma ronda: el ataque nocturno ocurre antes que la votación
+        eventos.push({ tipo: 'normal', texto: `<strong>${arrestado.nombre}</strong> ya había sido eliminado esta noche — el voto en su contra no tiene efecto.` });
+        return;
+      }
+
+      if (proteccionesActivas.has(arrestadoId)) {
+        eventos.push({ tipo: 'proteccion', texto: `El Curandeiro/a protegió a <strong>${arrestado.nombre}</strong> del arresto.` });
+        curandeiros.forEach(c => {
+          if (estado.accionesRonda[`proteccion-${c.id}`] === arrestadoId) {
+            c.puntos += 2;
+          }
+        });
+        return; // no se elimina, protección con efecto
+      }
+
+      // Se elimina por arresto
+      arrestado.vivo = false;
+      eventos.push({ tipo: 'eliminacion', texto: `<strong>${arrestado.nombre}</strong> fue arrestado esta ronda.` });
+
+      // Puntos individuales según quién votó qué:
+      // - Si el arrestado era del bando Trasnos (oculto): puntúan +2 los Gardas normales que votaron específicamente por él
+      // - Si el arrestado era un Garda inocente: puntúan +1 los Corruptos que votaron específicamente por él (desvío logrado)
+      Object.entries(votosRegistrados).forEach(([votanteId, votadoId]) => {
+        if (votadoId !== arrestadoId) return;
+        const votante = jugadorPorId(parseInt(votanteId));
+        if (BANDO_ROL[arrestado.rol] === 'trasnos' && votante.rol === 'garda') {
+          votante.puntos += 2;
+        } else if (arrestado.rol === 'garda' && votante.rol === 'corrupto') {
+          votante.puntos += 1;
+        }
+      });
+    });
+
+    // Los Corruptos vivos que sobrevivieron esta ronda puntúan +1 por sobrevivir
+    jugadoresVivosPorRol('corrupto').forEach(gc => {
+      if (!arrestadosIds.includes(gc.id)) gc.puntos += 1;
+    });
+
+    // 5. TRASNO — resolver intento de objeto
+    // Usamos la lista capturada al inicio de la ronda: el resultado se muestra siempre,
+    // sea o no descubierto/arrestado. El objeto nunca se pierde (máximo 1 por ronda por Trasno).
+    // Ser descubierto no revela el rol — solo da pie a que el máster u otros jugadores puedan
+    // usarlo de palabra para sospechar/incriminar.
+    // El pool de objetos es compartido entre todos los Trasnos de la partida: si se agota a
+    // mitad de esta misma ronda (varios marcados "Consiguió" con poco pool restante), el primero
+    // en procesarse se lo lleva y el resto se queda sin objeto aunque estuviera marcado "Consiguió".
+    trasnosAlInicioDeRonda.forEach(t => {
+      const resultado = estado.accionesRonda[`trasno-${t.id}`];
+      if (resultado === 'si') {
+        if (estado.objetosUsados < estado.objetosTotales) {
+          estado.objetosUsados += 1;
+          t.objetosConseguidos += 1;
+          t.puntos += 2;
+          eventos.push({ tipo: 'normal', texto: `<strong>${t.nombre}</strong> (Trasno) consiguió un objeto — lleva ${t.objetosConseguidos} en total. Pool: ${estado.objetosTotales - estado.objetosUsados} restantes.` });
+        } else {
+          eventos.push({ tipo: 'normal', texto: `<strong>${t.nombre}</strong> (Trasno) lo intentó, pero el pool de objetos ya estaba agotado — sigue con ${t.objetosConseguidos} en total.` });
+        }
+      } else if (resultado === 'no') {
+        eventos.push({ tipo: 'normal', texto: `<strong>${t.nombre}</strong> (Trasno) fue descubierto esta ronda — sigue con ${t.objetosConseguidos} en total.` });
+      }
+    });
+
+    // Guardar eventos y resultados para mostrar en la pantalla de resultado
+    estado.ultimosEventos = eventos;
+    estado.ultimosResultadosInvestigacion = resultadosInvestigacion;
+
+    mostrarResultadoRonda();
+  }
+
+  function mostrarResultadoRonda() {
+    document.getElementById('resultado-ronda-num').textContent = estado.rondaActual;
+    document.getElementById('resultado-vivos-contador').textContent = `${jugadoresVivos().length} vivos`;
+
+    const listaEventos = document.getElementById('lista-eventos');
+    listaEventos.innerHTML = '';
+
+    // Mostrar resultados de investigación primero (privados, pero el máster necesita verlos)
+    estado.ultimosResultadosInvestigacion.forEach(r => {
+      const div = document.createElement('div');
+      div.className = `evento-item ${r.acierto ? 'evento-proteccion' : ''}`;
+      const nombreBando = (b) => b === 'gardas' ? 'Gardas' : (b === 'trasnos' ? 'Trasnos' : 'Neutral');
+      const iconoAcierto = r.acierto ? '✓ Acertó' : '✗ Falló';
+      div.innerHTML = `🔍 <strong>${r.meiga}</strong> sospechaba <strong>${nombreBando(r.sospecha)}</strong> de <strong>${r.investigado}</strong> → era <strong>${nombreBando(r.bandoReal)}</strong> (${iconoAcierto})`;
+      listaEventos.appendChild(div);
+    });
+
+    estado.ultimosEventos.forEach(ev => {
+      const div = document.createElement('div');
+      div.className = `evento-item ${ev.tipo === 'eliminacion' ? 'evento-eliminacion' : (ev.tipo === 'proteccion' ? 'evento-proteccion' : '')}`;
+      div.innerHTML = ev.texto;
+      listaEventos.appendChild(div);
+    });
+
+    if (estado.ultimosEventos.length === 0 && estado.ultimosResultadosInvestigacion.length === 0) {
+      const div = document.createElement('div');
+      div.className = 'evento-item';
+      div.textContent = 'Ningunha acción rexistrada nesta ronda.';
+      listaEventos.appendChild(div);
+    }
+
+    // Tabla de puntos acumulados — esta pantalla es del máster, por eso se muestra el rol de cada jugador
+    const tabla = document.getElementById('tabla-puntos-ronda');
+    tabla.innerHTML = '';
+    const jugadoresOrdenados = [...estado.jugadores].sort((a, b) => b.puntos - a.puntos);
+    jugadoresOrdenados.forEach(j => {
+      const div = document.createElement('div');
+      div.className = `fila-puntos ${!j.vivo ? 'eliminado' : ''}`;
+      div.innerHTML = `
+        <div class="nombre-y-rol-ronda">
+          <span class="nombre-jugador-pts">${j.nombre}</span>
+          <span class="rol-jugador-pts">${NOMBRES_ROL[j.rol]}</span>
+        </div>
+        <span class="puntos-valor">${j.puntos} pts</span>
+      `;
+      tabla.appendChild(div);
+    });
+
+    // El texto del botón refleja si queda otra ronda o si esta era la última
+    const btnSiguiente = document.getElementById('btn-siguiente-ronda');
+    btnSiguiente.textContent = estado.rondaActual < RONDAS_TOTALES ? '▸ Siguiente ronda' : '▸ Ver resumen final';
+
+    mostrarPantalla('pantalla-resultado-ronda');
+  }
+
+  document.getElementById('btn-siguiente-ronda').addEventListener('click', () => {
+    if (estado.rondaActual < RONDAS_TOTALES) {
+      estado.rondaActual++;
+      prepararPantallaRonda();
+      mostrarPantalla('pantalla-ronda');
+    } else {
+      mostrarResumenFinal();
+    }
+  });
+
+  /* ============================================================
+     PANTALLA 5: RESUMEN FINAL — reveal de roles y bonus de grupo
+     ============================================================ */
+
+  function mostrarResumenFinal() {
+    // Calcular bonus de grupo
+    const gardasVivos = estado.jugadores.filter(j => j.vivo && j.rol === 'garda');
+    const trasnosOcultosVivos = estado.jugadores.filter(j => j.vivo && BANDO_ROL[j.rol] === 'trasnos');
+
+    const bandoGardasGana = trasnosOcultosVivos.length < Math.ceil(estado.jugadores.filter(j => BANDO_ROL[j.rol] === 'trasnos').length / 2);
+    const bandoTrasnosGana = trasnosOcultosVivos.length >= 2;
+
+    if (bandoGardasGana) {
+      gardasVivos.forEach(g => { g.puntos += 2; });
+    }
+    if (bandoTrasnosGana) {
+      trasnosOcultosVivos.forEach(t => { t.puntos += 2; });
+    }
+
+    // Ganador individual
+    const ordenados = [...estado.jugadores].sort((a, b) => b.puntos - a.puntos);
+    const ganador = ordenados[0];
+
+    document.getElementById('ganador-destacado').innerHTML = `
+      <div class="etiqueta-ganador">🏆 Ganador individual</div>
+      <div class="nombre-ganador">${ganador.nombre}</div>
+      <div class="detalle-ganador">${NOMBRES_ROL[ganador.rol]} · ${ganador.puntos} puntos</div>
+    `;
+
+    // Bandos
+    const bandosResultado = document.getElementById('bandos-resultado');
+    bandosResultado.innerHTML = `
+      <div class="bando-resultado-card ${bandoGardasGana ? 'bando-ganador' : ''}">
+        <div class="nombre-bando">Gardas</div>
+        <div class="estado-bando">${bandoGardasGana ? '✓ Bonus +2 conseguido' : 'Sin bonus'}</div>
+      </div>
+      <div class="bando-resultado-card ${bandoTrasnosGana ? 'bando-ganador' : ''}">
+        <div class="nombre-bando">Trasnos</div>
+        <div class="estado-bando">${bandoTrasnosGana ? '✓ Bonus +2 conseguido' : 'Sin bonus'}</div>
+      </div>
+    `;
+
+    // Tabla completa con reveal de roles
+    const tablaFinal = document.getElementById('tabla-final');
+    tablaFinal.innerHTML = '';
+    ordenados.forEach(j => {
+      const div = document.createElement('div');
+      div.className = `fila-final rol-${BANDO_ROL[j.rol]}`;
+      div.innerHTML = `
+        <div class="nombre-y-rol">
+          <span class="nombre-jug">${j.nombre}</span>
+          <span class="rol-jug">${NOMBRES_ROL[j.rol]}</span>
+        </div>
+        <span class="estado-vivo ${!j.vivo ? 'eliminado-tag' : ''}">${j.vivo ? 'Vivo' : 'Eliminado'}</span>
+        <span class="puntos-finales">${j.puntos}</span>
+      `;
+      tablaFinal.appendChild(div);
+    });
+
+    mostrarPantalla('pantalla-resumen-final');
+  }
+
+  document.getElementById('btn-ver-creditos').addEventListener('click', () => mostrarPantalla('pantalla-creditos'));
+
+  /* ============================================================
+     PANTALLA 6: CRÉDITOS — reinicio
+     ============================================================ */
+
+  document.getElementById('btn-nueva-partida').addEventListener('click', () => {
+    estado = {
+      numJugadores: 14,
+      jugadores: [],
+      rondaActual: 1,
+      accionesRonda: {},
+      modoReparto: 'automatico',
+      repartoPersonalizado: null,
+      objetosTotales: 4,
+      objetosUsados: 0,
+    };
+    // Restaurar visualmente los controles a su estado inicial para la próxima partida
+    document.getElementById('btn-modo-automatico').classList.add('activo');
+    document.getElementById('btn-modo-personalizado').classList.remove('activo');
+    document.getElementById('display-num-objetos').textContent = '4';
+    mostrarPantalla('pantalla-portada');
+  });
+
+})();
+
+// Registro del service worker para instalación PWA y funcionamiento offline
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch((err) => {
+      console.warn('No se pudo registrar el service worker:', err);
+    });
+  });
+}
+</script>
+</body>
+</html>
